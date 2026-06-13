@@ -4,6 +4,7 @@ import "./globals.css";
 import LightRays from "@/components/LightRays";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
+import { PostHogProvider } from "./providers";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -34,8 +35,8 @@ export default function RootLayout({
       className={cn("min-h-screen", "antialiased", schibstedGrotesk.variable, martianMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-screen flex flex-col">
-
-      <Navbar />
+        <PostHogProvider>
+        <Navbar />
 
         <div className="fixed inset-0 -z-10">
           <LightRays
@@ -58,7 +59,7 @@ export default function RootLayout({
         <main className="flex-1">
           {children}
         </main>
-
+        </PostHogProvider>
       </body>
     </html>
   );
