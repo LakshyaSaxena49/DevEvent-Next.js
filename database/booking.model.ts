@@ -51,7 +51,7 @@ BookingSchema.pre('save', async function () {
                     `Event with ID ${booking.eventId} does not exist`
                 );
             }
-        } catch (error) {
+        } catch {
             throw new Error(
                 'Invalid event ID format or database error'
             );

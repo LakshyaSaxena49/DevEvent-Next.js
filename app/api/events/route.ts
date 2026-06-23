@@ -3,15 +3,20 @@ import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
 import connectDB from '@/lib/mongodb';
 import Event from '@/database/event.model';
+import { authenticateToken, requireAdmin } from '@/lib/authMiddleware';
+import { getEvents } from '@/lib/events';
 
 cloudinary.config(true);
 
-interface CloudinaryUploadResult {
-    secure_url: string;
-}
-
 export async function POST(request: NextRequest) {
     try {
+        // Authenticate user and verify admin role
+        const { user, error } = await authenticateToken(request);
+        if (error) return error;
+
+        const adminError = requireAdmin(user);
+        if (adminError) return adminError;
+
         await connectDB();
 
         const formData = await request.formData();
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
 
         if (!file) return NextResponse.json({ message: 'File is required' }, { status: 400 });
 
-        
+
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
@@ -73,13 +78,14 @@ export async function POST(request: NextRequest) {
                 ).end(buffer);
             }
         );
-        
+
         event.image = uploadResult.secure_url;
 
         const createdEvent = await Event.create({
             ...event,
             tags: tags,
             agenda: agenda,
+            createdBy: user?.userId, // Track which admin created the event
         });
 
         return NextResponse.json({ message: 'Event created successfully', event: createdEvent }, { status: 201 });
@@ -97,14 +103,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
     try {
-        await connectDB();
-
-        const events = await Event.find().sort({ createdAt: -1 });
+        const events = await getEvents();
 
         return NextResponse.json({ message: 'Events fetched successfully', events }, { status: 200 });
     } catch (e) {
         return NextResponse.json({ message: 'Failed to fetch events', error: e }, { status: 500 });
     }
 }
-
-// a rote that accepts a slug as input -> returns the event details

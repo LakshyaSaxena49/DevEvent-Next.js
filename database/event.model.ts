@@ -1,4 +1,4 @@
-import { Schema, model, models, Document, HydratedDocument } from 'mongoose';
+import { Schema, model, models, Document, HydratedDocument, Types } from 'mongoose';
 
 // TypeScript interface for Event document
 export interface IEvent extends Document {
@@ -16,6 +16,7 @@ export interface IEvent extends Document {
     agenda: string[];
     organizer: string;
     tags: string[];
+    createdBy: Types.ObjectId; // Admin user who created the event
     createdAt: Date;
     updatedAt: Date;
 }
@@ -103,6 +104,11 @@ const EventSchema = new Schema<IEvent>(
                 message: 'At least one tag is required',
             },
         },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: [true, 'Event creator is required'],
+        },
     },
     {
         timestamps: true, // Auto-generate createdAt and updatedAt
@@ -128,7 +134,7 @@ EventSchema.pre('save', function () {
         event.time = normalizeTime(event.time);
     }
 
-    
+
 });
 
 // Helper function to generate URL-friendly slug
