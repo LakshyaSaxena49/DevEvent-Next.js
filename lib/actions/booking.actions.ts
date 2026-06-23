@@ -9,6 +9,7 @@ export const createBooking = async ({ eventId, slug, email} : {eventId: string, 
         await connectDB();
         await Booking.create({ eventId, slug, email });
 
+        console.log("Booking created successfully");
         return { success: true };
     } catch(e) {
         console.error('create booking failed', e);
