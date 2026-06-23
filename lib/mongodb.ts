@@ -61,6 +61,8 @@ async function connectDB(): Promise<Connection> {
         bufferCommands: false, // Disable Mongoose buffering
     };
 
+  console.log("Mongo URI:", mongoUri.split("@")[1]);
+
   // Create a new connection promise
   const connectionPromise = mongoose
     .connect(mongoUri, {
@@ -102,7 +104,12 @@ async function connectDB(): Promise<Connection> {
     })
     .then((mongooseInstance) => {
       // Return the default connection from the connected instance
+      console.log("MongoDB Connected Successfully");
       return mongooseInstance.connection;
+    })
+    .catch((err) => {
+      console.error("MongoDB Connection Error:", err);
+      throw err;
     });
 
   // Cache the connection promise to avoid multiple simultaneous connection attempts

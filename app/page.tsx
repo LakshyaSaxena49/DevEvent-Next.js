@@ -1,8 +1,24 @@
+// app/page.tsx
 import EventCard from "@/components/EventCard";
 import ExploreBtn from "@/components/ExploreBtn";
-import { events } from "@/lib/constants";
+import { IEvent } from "@/database";
+import connectDB from "@/lib/mongodb";
+import Event from "@/database/event.model";
+import { cacheLife } from "next/cache";
 
-const Page = () => {
+
+
+//const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
+export default async function Page() {
+  'use cache';
+  cacheLife('hours');
+  await connectDB();
+
+  const events = await Event.find()
+    .sort({ createdAt: -1 })
+    .lean();
+
   return (
     <section className="min-h-screen flex flex-col items-center ">
       <h1 className="text-center text-6xl font-bold">
@@ -21,8 +37,8 @@ const Page = () => {
         <h3>Featured Events</h3>
 
         <ul className="events">
-          {events.map((event) => (
-            <li key={event.title}>
+          {events && events.length > 0 && events.map((event: IEvent) => (
+            <li key={event.title} className="list-none">
               <EventCard { ...event } />
             </li>
           ))}
@@ -32,5 +48,3 @@ const Page = () => {
     </section>
   );
 };
-
-export default Page;
