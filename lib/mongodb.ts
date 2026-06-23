@@ -57,12 +57,6 @@ async function connectDB(): Promise<Connection> {
       'MONGODB_URI environment variable is not defined. Please configure your MongoDB connection string.'
     );
   }
-    const options = {
-        bufferCommands: false, // Disable Mongoose buffering
-    };
-
-  console.log("Mongo URI:", mongoUri.split("@")[1]);
-
   // Create a new connection promise
   const connectionPromise = mongoose
     .connect(mongoUri, {
@@ -101,10 +95,10 @@ async function connectDB(): Promise<Connection> {
        * Set to 4 for IPv4 only (recommended for stability)
        */
       family: 4,
+      bufferCommands: false,
     })
     .then((mongooseInstance) => {
       // Return the default connection from the connected instance
-      console.log("MongoDB Connected Successfully");
       return mongooseInstance.connection;
     })
     .catch((err) => {

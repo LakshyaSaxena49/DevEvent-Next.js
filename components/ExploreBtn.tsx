@@ -6,7 +6,7 @@ const ExploreBtn = () => {
         <button type="button" id="explore-btn" className="mt-7 mx-auto" onClick={() => console.log('CLICK')}>
             <a href="#events">
                 Explore Events
-                <Image src="/icons/arrow-down.svg" alt="Arrow down" width={24} height={24} style={{height: "24px", width:"auto"}} />
+                <Image src="/icons/arrow-down.svg" alt="Arrow down" width={24} height={24} className="w-5 h-auto" />
             </a>
         </button>
     )
