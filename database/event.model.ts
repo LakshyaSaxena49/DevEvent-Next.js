@@ -107,7 +107,8 @@ const EventSchema = new Schema<IEvent>(
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: 'User',
-            required: [true, 'Event creator is required'],
+            required: false/*[true, 'Event creator is required']*/,
+            default: null,
         },
     },
     {
