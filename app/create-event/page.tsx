@@ -4,6 +4,63 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import posthog from 'posthog-js';
 
+const FormField = ({
+    label,
+    id,
+    ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
+    <div className="flex flex-col gap-2">
+        <label htmlFor={id} className="text-light-200 text-sm font-medium">
+            {label} {props.required && <span className="text-primary">*</span>}
+        </label>
+        <input
+            id={id}
+            {...props}
+            className="w-full px-4 py-2.5 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200 transition-all"
+        />
+    </div>
+);
+
+const FormTextArea = ({
+    label,
+    id,
+    ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) => (
+    <div className="flex flex-col gap-2">
+        <label htmlFor={id} className="text-light-200 text-sm font-medium">
+            {label} {props.required && <span className="text-primary">*</span>}
+        </label>
+        <textarea
+            id={id}
+            {...props}
+            className="w-full px-4 py-2.5 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200 transition-all"
+        />
+    </div>
+);
+
+const FormSelect = ({
+    label,
+    id,
+    options,
+    ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; options: Array<{ value: string; label: string }> }) => (
+    <div className="flex flex-col gap-2">
+        <label htmlFor={id} className="text-light-200 text-sm font-medium">
+            {label} {props.required && <span className="text-primary">*</span>}
+        </label>
+        <select
+            id={id}
+            {...props}
+            className="w-full px-4 py-2.5 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground transition-all"
+        >
+            <option value="">Select {label.toLowerCase()}</option>
+            {options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+        </select>
+    </div>
+);
+
 export default function CreateEventPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -18,7 +75,7 @@ export default function CreateEventPage() {
         location: '',
         date: '',
         time: '',
-        mode: 'online',
+        mode: '',
         audience: '',
         organizer: '',
         tags: '',
@@ -51,25 +108,19 @@ export default function CreateEventPage() {
         setLoading(true);
 
         try {
-            // Validate required fields
-            if (!formData.image) {
-                throw new Error('Image is required');
-            }
-
+            if (!formData.image) throw new Error('Image is required');
             if (!formData.title || !formData.description || !formData.overview) {
                 throw new Error('Title, description, and overview are required');
             }
 
-            // Parse tags and agenda
             const tags = formData.tags
-                ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+                ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
                 : [];
 
             const agenda = formData.agenda
-                ? formData.agenda.split('\n').map(item => item.trim()).filter(item => item !== '')
+                ? formData.agenda.split('\n').map(item => item.trim()).filter(item => item)
                 : [];
 
-            // Create FormData for multipart/form-data
             const submitFormData = new FormData();
             submitFormData.append('title', formData.title);
             submitFormData.append('description', formData.description);
@@ -99,24 +150,6 @@ export default function CreateEventPage() {
             setSuccess(true);
             posthog.capture('event_created', { title: formData.title });
 
-            // Reset form
-            setFormData({
-                title: '',
-                description: '',
-                overview: '',
-                venue: '',
-                location: '',
-                date: '',
-                time: '',
-                mode: 'online',
-                audience: '',
-                organizer: '',
-                tags: '',
-                agenda: '',
-                image: null,
-            });
-
-            // Redirect after 2 seconds
             setTimeout(() => {
                 router.push('/');
             }, 2000);
@@ -131,252 +164,205 @@ export default function CreateEventPage() {
 
     return (
         <main>
-            <div className="max-w-2xl">
-                <h1 className="mb-8">Create New Event</h1>
-
-                {success && (
-                    <div className="mb-6 p-4 bg-green-900/30 border border-green-700 rounded-lg">
-                        <p className="text-green-400">Event created successfully! Redirecting...</p>
+            <section className="min-h-screen flex items-center justify-center py-12">
+                <div className="w-full max-w-2xl">
+                    <div className="text-center mb-12">
+                        <h1 className="mb-2">Create an Event</h1>
+                        <p className="text-light-200">Share your event with the developer community</p>
                     </div>
-                )}
 
-                {error && (
-                    <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg">
-                        <p className="text-red-400">{error}</p>
-                    </div>
-                )}
+                    {success && (
+                        <div className="mb-6 p-4 bg-green-900/30 border border-green-700 rounded-lg">
+                            <p className="text-green-400">Event created successfully! Redirecting...</p>
+                        </div>
+                    )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Title */}
-                    <div>
-                        <label htmlFor="title" className="block text-light-200 text-sm font-medium mb-1">
-                            Event Title *
-                        </label>
-                        <input
-                            type="text"
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg">
+                            <p className="text-red-400">{error}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Title */}
+                        <FormField
+                            label="Event Title"
                             id="title"
                             name="title"
+                            type="text"
                             value={formData.title}
                             onChange={handleInputChange}
-                            placeholder="e.g., React Conference 2024"
+                            placeholder="Enter event title"
                             required
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
                         />
-                    </div>
 
-                    {/* Description */}
-                    <div>
-                        <label htmlFor="description" className="block text-light-200 text-sm font-medium mb-1">
-                            Description *
-                        </label>
-                        <textarea
-                            id="description"
-                            name="description"
-                            value={formData.description}
+                        {/* Date & Time Row */}
+                        <div className="grid sm:grid-cols-2 gap-6">
+                            <FormField
+                                label="Event Date"
+                                id="date"
+                                name="date"
+                                type="date"
+                                value={formData.date}
+                                onChange={handleInputChange}
+                                required
+                            />
+
+                            <FormField
+                                label="Event Time"
+                                id="time"
+                                name="time"
+                                type="time"
+                                value={formData.time}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+
+                        {/* Location & Venue Row */}
+                        <div className="grid sm:grid-cols-2 gap-6">
+                            <FormField
+                                label="Location"
+                                id="location"
+                                name="location"
+                                type="text"
+                                value={formData.location}
+                                onChange={handleInputChange}
+                                placeholder="City, Country"
+                                required
+                            />
+
+                            <FormField
+                                label="Venue"
+                                id="venue"
+                                name="venue"
+                                type="text"
+                                value={formData.venue}
+                                onChange={handleInputChange}
+                                placeholder="Venue name"
+                                required
+                            />
+                        </div>
+
+                        {/* Mode Selection & Audience Row */}
+                        <div className="grid sm:grid-cols-2 gap-6">
+                            <FormSelect
+                                label="Event Type"
+                                id="mode"
+                                name="mode"
+                                value={formData.mode}
+                                onChange={handleInputChange}
+                                options={[
+                                    { value: 'online', label: 'Online' },
+                                    { value: 'offline', label: 'Offline' },
+                                    { value: 'hybrid', label: 'Hybrid (In-Person & Online)' }
+                                ]}
+                                required
+                            />
+
+                            <FormField
+                                label="Target Audience"
+                                id="audience"
+                                name="audience"
+                                type="text"
+                                value={formData.audience}
+                                onChange={handleInputChange}
+                                placeholder="e.g., Developers, DevOps, Architects"
+                                required
+                            />
+                        </div>
+
+                        {/* Organizer Field */}
+                        <FormTextArea
+                            label="Organizer Information"
+                            id="organizer"
+                            name="organizer"
+                            value={formData.organizer}
                             onChange={handleInputChange}
-                            placeholder="Detailed description of the event"
-                            rows={4}
+                            placeholder="Tell us about your organization or who is organizing this event"
+                            rows={3}
                             required
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
                         />
-                    </div>
 
-                    {/* Overview */}
-                    <div>
-                        <label htmlFor="overview" className="block text-light-200 text-sm font-medium mb-1">
-                            Overview *
-                        </label>
-                        <textarea
+                        {/* Image Upload */}
+                        <div className="flex flex-col gap-2">
+                            <label htmlFor="image" className="text-light-200 text-sm font-medium">
+                                Event Image / Banner <span className="text-primary">*</span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    id="image"
+                                    name="image"
+                                    onChange={handleFileChange}
+                                    accept="image/*"
+                                    required
+                                    className="w-full px-4 py-2.5 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-black file:font-semibold hover:file:bg-primary/90 transition-all"
+                                />
+                            </div>
+                            {formData.image && (
+                                <p className="text-sm text-light-200">Selected: {formData.image.name}</p>
+                            )}
+                        </div>
+
+                        {/* Tags */}
+                        <FormField
+                            label="Tags"
+                            id="tags"
+                            name="tags"
+                            type="text"
+                            value={formData.tags}
+                            onChange={handleInputChange}
+                            placeholder="Add tags such as react, next.js"
+                        />
+
+                        {/* Overview */}
+                        <FormTextArea
+                            label="Event Overview"
                             id="overview"
                             name="overview"
                             value={formData.overview}
                             onChange={handleInputChange}
                             placeholder="Brief overview of the event"
-                            rows={2}
+                            rows={3}
                             required
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
                         />
-                    </div>
 
-                    {/* Organizer */}
-                    <div>
-                        <label htmlFor="organizer" className="block text-light-200 text-sm font-medium mb-1">
-                            Organizer
-                        </label>
-                        <input
-                            type="text"
-                            id="organizer"
-                            name="organizer"
-                            value={formData.organizer}
+                        {/* Description */}
+                        <FormTextArea
+                            label="Event Description"
+                            id="description"
+                            name="description"
+                            value={formData.description}
                             onChange={handleInputChange}
-                            placeholder="e.g., DevCommunity"
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
-                        />
-                    </div>
-
-                    {/* Venue */}
-                    <div>
-                        <label htmlFor="venue" className="block text-light-200 text-sm font-medium mb-1">
-                            Venue
-                        </label>
-                        <input
-                            type="text"
-                            id="venue"
-                            name="venue"
-                            value={formData.venue}
-                            onChange={handleInputChange}
-                            placeholder="e.g., Grand Ballroom, Convention Center"
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
-                        />
-                    </div>
-
-                    {/* Location */}
-                    <div>
-                        <label htmlFor="location" className="block text-light-200 text-sm font-medium mb-1">
-                            Location *
-                        </label>
-                        <input
-                            type="text"
-                            id="location"
-                            name="location"
-                            value={formData.location}
-                            onChange={handleInputChange}
-                            placeholder="e.g., San Francisco, CA"
+                            placeholder="Briefly describe the event"
+                            rows={4}
                             required
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
                         />
-                    </div>
 
-                    {/* Mode */}
-                    <div>
-                        <label htmlFor="mode" className="block text-light-200 text-sm font-medium mb-1">
-                            Event Mode
-                        </label>
-                        <select
-                            id="mode"
-                            name="mode"
-                            value={formData.mode}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-                        >
-                            <option value="online">Online</option>
-                            <option value="offline">Offline</option>
-                            <option value="hybrid">Hybrid</option>
-                        </select>
-                    </div>
-
-                    {/* Date and Time */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="date" className="block text-light-200 text-sm font-medium mb-1">
-                                Date *
-                            </label>
-                            <input
-                                type="date"
-                                id="date"
-                                name="date"
-                                value={formData.date}
-                                onChange={handleInputChange}
-                                required
-                                className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="time" className="block text-light-200 text-sm font-medium mb-1">
-                                Time *
-                            </label>
-                            <input
-                                type="time"
-                                id="time"
-                                name="time"
-                                value={formData.time}
-                                onChange={handleInputChange}
-                                required
-                                className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Audience */}
-                    <div>
-                        <label htmlFor="audience" className="block text-light-200 text-sm font-medium mb-1">
-                            Target Audience
-                        </label>
-                        <input
-                            type="text"
-                            id="audience"
-                            name="audience"
-                            value={formData.audience}
-                            onChange={handleInputChange}
-                            placeholder="e.g., Beginner, Intermediate, Advanced"
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
-                        />
-                    </div>
-
-                    {/* Tags */}
-                    <div>
-                        <label htmlFor="tags" className="block text-light-200 text-sm font-medium mb-1">
-                            Tags (comma-separated)
-                        </label>
-                        <input
-                            type="text"
-                            id="tags"
-                            name="tags"
-                            value={formData.tags}
-                            onChange={handleInputChange}
-                            placeholder="e.g., React, JavaScript, Web Development"
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
-                        />
-                    </div>
-
-                    {/* Agenda */}
-                    <div>
-                        <label htmlFor="agenda" className="block text-light-200 text-sm font-medium mb-1">
-                            Agenda (one item per line)
-                        </label>
-                        <textarea
+                        {/* Agenda */}
+                        <FormTextArea
+                            label="Event Agenda"
                             id="agenda"
                             name="agenda"
                             value={formData.agenda}
                             onChange={handleInputChange}
-                            placeholder="Opening keynote&#10;Panel discussion&#10;Networking break&#10;Closing remarks"
+                            placeholder="Enter agenda items, one per line (e.g., '08:30 AM - 09:30 AM | Keynote: AI-Driven Cloud')"
                             rows={4}
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-light-200"
-                        />
-                    </div>
-
-                    {/* Image Upload */}
-                    <div>
-                        <label htmlFor="image" className="block text-light-200 text-sm font-medium mb-1">
-                            Event Image *
-                        </label>
-                        <input
-                            type="file"
-                            id="image"
-                            name="image"
-                            onChange={handleFileChange}
-                            accept="image/*"
                             required
-                            className="w-full px-4 py-2 bg-dark-200 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                         />
-                        {formData.image && (
-                            <p className="mt-2 text-sm text-light-200">
-                                Selected: {formData.image.name}
-                            </p>
-                        )}
-                    </div>
 
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full px-6 py-3 bg-primary hover:bg-primary/90 text-black font-medium rounded-lg disabled:opacity-50 transition-all"
-                    >
-                        {loading ? 'Creating Event...' : 'Create Event'}
-                    </button>
-                </form>
-            </div>
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full px-6 py-3 bg-primary hover:bg-primary/90 text-black font-semibold rounded-lg disabled:opacity-50 transition-all"
+                        >
+                            {loading ? 'Saving Event...' : 'Save Event'}
+                        </button>
+                    </form>
+                </div>
+            </section>
         </main>
     );
 }

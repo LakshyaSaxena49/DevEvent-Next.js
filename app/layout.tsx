@@ -5,6 +5,7 @@ import LightRays from "@/components/LightRays";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import { PostHogProvider } from "./providers";
+import { Suspense } from "react";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       className={cn("min-h-screen", "antialiased", schibstedGrotesk.variable, martianMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-screen flex flex-col">
+        <Suspense fallback={null}>
         <PostHogProvider>
         <Navbar />
 
@@ -60,6 +62,7 @@ export default function RootLayout({
           {children}
         </main>
         </PostHogProvider>
+        </Suspense>
       </body>
     </html>
   );

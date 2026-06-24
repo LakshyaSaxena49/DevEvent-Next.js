@@ -3,7 +3,7 @@ import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
 import connectDB from '@/lib/mongodb';
 import Event from '@/database/event.model';
-import { authenticateToken, requireAdmin } from '@/lib/authMiddleware';
+//import { authenticateToken, requireAdmin } from '@/lib/authMiddleware';
 import { getEvents } from '@/lib/events';
 
 cloudinary.config(true);
@@ -11,11 +11,11 @@ cloudinary.config(true);
 export async function POST(request: NextRequest) {
     try {
         // Authenticate user and verify admin role
-        const { user, error } = await authenticateToken(request);
-        if (error) return error;
+        // const { user, error } = await authenticateToken(request);
+        // if (error) return error;
 
-        const adminError = requireAdmin(user);
-        if (adminError) return adminError;
+        // const adminError = requireAdmin(user);
+        // if (adminError) return adminError;
 
         await connectDB();
 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
             ...event,
             tags: tags,
             agenda: agenda,
-            createdBy: user?.userId, // Track which admin created the event
+            //createdBy: user?.userId, // Track which admin created the event
         });
 
         return NextResponse.json({ message: 'Event created successfully', event: createdEvent }, { status: 201 });

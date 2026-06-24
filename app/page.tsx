@@ -1,41 +1,47 @@
 import EventCard from "@/components/EventCard";
 import ExploreBtn from "@/components/ExploreBtn";
 import { getEvents } from "@/lib/events";
-import Link from "next/link";
 
-export default async function Page() {
+export default async function HomePage() {
   const events = await getEvents();
 
   return (
-    <section className="flex min-h-screen flex-col items-center">
-      <h1 className="text-center text-6xl font-bold">
-        The Hub For Every Dev
-        <br />
-        Event You Wouldn&apos;t Want To Miss
-      </h1>
+    <>
+      {/* Hero Section */}
+      <section className="flex-1 flex flex-col items-center justify-center py-20 sm:py-32">
+        <div className="text-center max-w-3xl mx-auto">
+          <h1 className="mb-4">
+            The Hub for Every Dev
+            <br />
+            Event You Can&apos;t Miss
+          </h1>
 
-      <p className="text-center mt-5 text-xl">
-        Hackathons, Meetups, and Conferences, All In One Place
-      </p>
+          <p className="text-light-100 text-lg sm:text-xl mb-8">
+            Hackathons, Meetups, and Conferences, All In One Place
+          </p>
 
-      <div className="flex gap-4 mt-7 flex-wrap justify-center">
-        <ExploreBtn />
-        <Link href="/create-event" className="px-8 py-3.5 bg-primary hover:bg-primary/90 text-black font-semibold rounded-full transition-colors inline-flex items-center">
-          Create Event
-        </Link>
-      </div>
+          <ExploreBtn />
+        </div>
+      </section>
 
-      <div id="events" className="mt-20 space-y-7">
-        <h3>Featured Events</h3>
+      {/* Featured Events Section */}
+      <section id="events" className="py-20">
+        <h3 className="mb-10 text-2xl sm:text-3xl">Featured Events</h3>
 
-        <ul className="events">
-          {events.map((event) => (
-            <li key={event._id} className="list-none">
-              <EventCard {...event} />
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+        {events.length > 0 ? (
+          <ul className="events">
+            {events.map((event) => (
+              <li key={event._id} className="list-none">
+                <EventCard {...event} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-light-200">No events available yet. Check back soon!</p>
+          </div>
+        )}
+      </section>
+    </>
   );
 }

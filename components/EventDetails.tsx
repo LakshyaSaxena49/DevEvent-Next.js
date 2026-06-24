@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-
 import { getEventBySlug, getSimilarEventsBySlug } from '@/lib/events';
 import BookEvent from './BookEvent';
 import EventCard from './EventCard';
@@ -9,34 +8,17 @@ type EventDetailsProps = {
     slug: string;
 };
 
-type EventDetailsItemProps = {
-    icon: string;
-    alt: string;
-    label: string;
-};
-
-const EventDetailsItem = ({ icon, alt, label }: EventDetailsItemProps) => (
-    <div className="flex-row-gap-2 items-center">
-        <Image src={icon} alt={alt} width={17} height={17} />
-        <p>{label}</p>
-    </div>
-);
-
-const EventAgenda = ({ agendaItems }: { agendaItems: string[] }) => (
-    <div className="agenda">
-        <h2>Agenda</h2>
-        <ul>
-            {agendaItems.map((item) => (
-                <li key={item}>{item}</li>
-            ))}
-        </ul>
+const EventDetailsItem = ({ icon, label }: { icon: string; label: string }) => (
+    <div className="flex items-center gap-3 text-light-100">
+        <Image src={icon} alt="icon" width={16} height={16} />
+        <p className="text-sm">{label}</p>
     </div>
 );
 
 const EventTags = ({ tags }: { tags: string[] }) => (
-    <div className="flex flex-row gap-1.5 flex-wrap">
+    <div className="flex flex-row gap-2 flex-wrap">
         {tags.map((tag) => (
-            <div className="pill" key={tag}>{tag}</div>
+            <span key={tag} className="pill">{tag}</span>
         ))}
     </div>
 );
@@ -52,6 +34,7 @@ const EventDetails = async ({ slug }: EventDetailsProps) => {
     }
 
     const {
+        title,
         description,
         image,
         overview,
@@ -60,73 +43,101 @@ const EventDetails = async ({ slug }: EventDetailsProps) => {
         location,
         mode,
         audience,
+        venue,
         agenda,
         organizer,
-        tags
+        tags,
+        _id: eventId
     } = event;
 
-
-    const bookings = 10;
-
     return (
-        <section id='event'>
-            <div className="header">
-                <h1>Event Description</h1>
-                <p className="">{description}</p>
-            </div>
-
-            <div className="details">
-                <div className="content">
-                    <Image src={image} alt="Event Banner" width={800} height={800} className="banner" />
-
-                    <section className="flex-col-gap-2">
-                        <h2>Overview</h2>
-                        <p>{overview}</p>
-                    </section>
-
-                    <section className="flex-col-gap-2">
-                        <h2>Event Details</h2>
-
-                        <EventDetailsItem icon="/icons/calendar.svg" alt="Calendar Icon" label={date} />
-                        <EventDetailsItem icon="/icons/clock.svg" alt="clock Icon" label={time} />
-                        <EventDetailsItem icon="/icons/pin.svg" alt="pin Icon" label={location} />
-                        <EventDetailsItem icon="/icons/mode.svg" alt="mode Icon" label={mode} />
-                        <EventDetailsItem icon="/icons/audience.svg" alt="audience Icon" label={audience} />
-                    </section>
-
-                    <EventAgenda agendaItems={agenda} />
-
-                    <section className="flex-col-gap-2">
-                        <h2>About the Organizer</h2>
-                        <p>{organizer}</p>
-                    </section>
-
-                    <EventTags tags={tags} />
-
-                </div>
-
-                <aside className="booking">
-                    <div className="signup-card">
-                        <h2>Book Your Spot</h2>
-                        {bookings > 0 ? (
-                            <p className="text-sm">Join {bookings} people who have already booked their spots!</p>
-                        ) : (
-                            <p className="text-sm">Be the first to book your spot!</p>
-                        )}
-                        <BookEvent eventId={event._id} slug={event.slug} />
+        <main>
+            {/* Hero Section */}
+            <section id="event-hero" className="mb-10">
+                <div className="grid md:grid-cols-2 gap-8 items-start">
+                    {/* Image */}
+                    <div className="order-2 md:order-1">
+                        <Image
+                            src={image}
+                            alt={title}
+                            width={600}
+                            height={400}
+                            className="rounded-lg w-full object-cover h-96 md:h-full"
+                        />
                     </div>
-                </aside>
-            </div>
 
-            <div className="flex w-full flex-col gap-4 pt-20">
-                <h2>Similar Events You Might Like</h2>
-                <div className="events">
-                    {similarEvents.map((similarEvent) => (
-                        <EventCard key={similarEvent._id} {...similarEvent} />
-                    ))}
+                    {/* Content & Booking */}
+                    <div className="order-1 md:order-2 flex flex-col gap-6">
+                        <div>
+                            <h1 className="mb-3">{title}</h1>
+                            <p className="text-light-100 text-lg">{description}</p>
+                        </div>
+
+                        <div className="bg-dark-100 border border-dark-200 rounded-lg p-6 space-y-4">
+                            <h3 className="text-xl font-semibold">Book Your Spot</h3>
+                            <BookEvent eventId={eventId} slug={slug} />
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            {/* Overview Section */}
+            <section className="mb-10">
+                <h2 className="mb-4">Overview</h2>
+                <p className="text-light-100 leading-relaxed">{overview}</p>
+            </section>
+
+            {/* Event Details Section */}
+            <section className="mb-10">
+                <h2 className="mb-6">Event Details</h2>
+                <div className="grid sm:grid-cols-2 gap-6">
+                    <EventDetailsItem icon="/icons/calendar.svg" label={date} />
+                    <EventDetailsItem icon="/icons/clock.svg" label={time} />
+                    <EventDetailsItem icon="/icons/pin.svg" label={location} />
+                    <EventDetailsItem icon="/icons/mode.svg" label={mode} />
+                    <EventDetailsItem icon="/icons/audience.svg" label={audience} />
+                    {venue && <EventDetailsItem icon="/icons/venue.svg" label={venue} />}
+                </div>
+            </section>
+
+            {/* Agenda Section */}
+            <section className="mb-10">
+                <h2 className="mb-4">Agenda</h2>
+                <ul className="space-y-2 text-light-100">
+                    {agenda.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                            <span className="text-primary mt-1">•</span>
+                            <span>{item}</span>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+
+            {/* Organizer Section */}
+            <section className="mb-10">
+                <h2 className="mb-4">About the Organizer</h2>
+                <p className="text-light-100 leading-relaxed">{organizer}</p>
+            </section>
+
+            {/* Tags Section */}
+            <section className="mb-16">
+                <EventTags tags={tags} />
+            </section>
+
+            {/* Similar Events Section */}
+            {similarEvents.length > 0 && (
+                <section>
+                    <h2 className="mb-8">Similar Events You Might Like</h2>
+                    <ul className="events">
+                        {similarEvents.map((similarEvent) => (
+                            <li key={similarEvent._id} className="list-none">
+                                <EventCard {...similarEvent} />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+        </main>
     );
 };
 
