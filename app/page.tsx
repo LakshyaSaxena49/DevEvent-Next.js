@@ -8,8 +8,8 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="flex-1 flex flex-col items-center justify-center py-20 sm:py-32">
-        <div className="text-center max-w-3xl mx-auto">
+      <section className="flex flex-col items-center justify-center min-h-[60vh] md:min-h-[65vh] py-12 md:py-20 pt-6">
+        <div className="text-center max-w-5xl mx-auto">
           <h1 className="mb-4">
             The Hub for Every Dev
             <br />
@@ -25,7 +25,7 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Events Section */}
-      <section id="events" className="py-20">
+      <section id="events" className="pt-10 pb-16">
         <h3 className="mb-10 text-2xl sm:text-3xl">Featured Events</h3>
 
         {events.length > 0 ? (

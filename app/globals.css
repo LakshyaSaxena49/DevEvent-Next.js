@@ -95,7 +95,7 @@
 }
 
 @utility text-gradient {
-  @apply to-blue bg-gradient-to-b from-white via-white bg-clip-text font-semibold text-transparent;
+  @apply to-blue bg-linear-to-b from-white via-white bg-clip-text font-semibold text-transparent;
 }
 
 @utility glass {
@@ -145,19 +145,30 @@
     z-index: 0;
   }
 
-  html,
-  body,
+  html{
+    scroll-behavior:smooth;
+  }
+  body{
+    overflow-x:hidden;
+  }
   main {
     position: relative;
     z-index: 1;
   }
 
   main {
-    @apply mx-auto container flex flex-col py-10 w-full;
+    @apply mx-auto
+    w-full
+    max-w-7xl
+    px-6
+    lg:px-8
+    py-8;
   }
 
   h1 {
-    @apply text-gradient text-6xl font-semibold max-sm:text-4xl;
+    @apply text-gradient text-4xl font-semibold md:text-5xl
+    lg:text-6xl
+    leading-tight;
   }
 
   h2 {
@@ -186,7 +197,14 @@
     @apply glass sticky top-0 z-50 w-full;
 
     nav {
-      @apply flex flex-row justify-between mx-auto container py-4;
+      @apply max-w-7xl
+    mx-auto
+    px-6
+    lg:px-8
+    flex
+    justify-between
+    items-center
+    py-4;
     }
 
     .logo {
@@ -207,14 +225,17 @@
   }
 
   .events {
-    @apply grid md:grid-cols-3 gap-10 sm:grid-cols-2 grid-cols-1;
+    @apply grid grid-cols-1
+    sm:grid-cols-2
+    xl:grid-cols-3
+    gap-8;
   }
 
   #event-card {
     @apply flex flex-col gap-3 cursor-pointer;
 
     .poster {
-      @apply h-[300px] w-full rounded-lg object-cover transition-opacity hover:opacity-90;
+      @apply rounded-lg object-cover transition-opacity hover:opacity-90 w-full aspect-[4/3];
     }
 
     .title {
